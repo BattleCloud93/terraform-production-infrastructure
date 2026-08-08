@@ -18,3 +18,14 @@ module "security" {
   environment  = var.environment
   vpc_id       = module.networking.vpc_id
 }
+
+module "compute" {
+  source = "./modules/compute"
+
+  project_name        = var.project_name
+  environment         = var.environment
+  instance_type       = var.instance_type
+  security_group_id   = module.security.ec2_security_group_id
+  private_subnet_a_id = module.networking.private_subnet_a_id
+  private_subnet_b_id = module.networking.private_subnet_b_id
+}

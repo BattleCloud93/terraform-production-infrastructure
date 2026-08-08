@@ -76,3 +76,11 @@ variable "private_subnet_b_cidr" {
 
   default = "10.0.12.0/24"
 }
+
+variable "instance_type" {
+  description = "EC2 instance type for application servers."
+
+  type = string
+
+  default = "t3.micro"
+}
