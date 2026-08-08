@@ -65,3 +65,137 @@ resource "aws_subnet" "private_b" {
     ManagedBy   = "Terraform"
   }
 }
+
+#Internet Gateway
+resource "aws_internet_gateway" "main" {
+  vpc_id = aws_vpc.main.id
+
+  tags = {
+    Name        = "${var.project_name}-igw"
+    Environment = var.environment
+    ManagedBy   = "Terraform"
+  }
+}
+
+#Public Route Table
+resource "aws_route_table" "public" {
+  vpc_id = aws_vpc.main.id
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.main.id
+  }
+
+  tags = {
+    Name        = "${var.project_name}-public-route-table"
+    Environment = var.environment
+    ManagedBy   = "Terraform"
+  }
+}
+
+#Associate Public Subnet A
+
+resource "aws_route_table_association" "public_a" {
+  subnet_id      = aws_subnet.public_a.id
+  route_table_id = aws_route_table.public.id
+}
+
+#Associate Public Subnet B
+resource "aws_route_table_association" "public_b" {
+  subnet_id      = aws_subnet.public_b.id
+  route_table_id = aws_route_table.public.id
+}
+
+#Elastic IP for NAT Gateway A
+resource "aws_eip" "nat" {
+  domain = "vpc"
+
+  tags = {
+    Name        = "${var.project_name}-nat-eip"
+    Environment = var.environment
+    ManagedBy   = "Terraform"
+  }
+}
+
+#NAT Gateway A
+resource "aws_nat_gateway" "main" {
+  allocation_id = aws_eip.nat.id
+  subnet_id     = aws_subnet.public_a.id
+
+  depends_on = [aws_internet_gateway.main]
+
+  tags = {
+    Name        = "${var.project_name}-nat-gateway"
+    Environment = var.environment
+    ManagedBy   = "Terraform"
+  }
+}
+
+#Private Route Table A
+resource "aws_route_table" "private" {
+  vpc_id = aws_vpc.main.id
+
+  route {
+    cidr_block     = "0.0.0.0/0"
+    nat_gateway_id = aws_nat_gateway.main.id
+  }
+
+  tags = {
+    Name        = "${var.project_name}-private-route-table"
+    Environment = var.environment
+    ManagedBy   = "Terraform"
+  }
+}
+
+#Private Route Table B
+resource "aws_route_table" "private_b" {
+  vpc_id = aws_vpc.main.id
+
+  route {
+    cidr_block     = "0.0.0.0/0"
+    nat_gateway_id = aws_nat_gateway.nat_b.id
+  }
+
+  tags = {
+    Name        = "${var.project_name}-private-route-table-b"
+    Environment = var.environment
+    ManagedBy   = "Terraform"
+  }
+}
+
+#Associate Private Subnet A
+resource "aws_route_table_association" "private_a" {
+  subnet_id      = aws_subnet.private_a.id
+  route_table_id = aws_route_table.private.id
+}
+
+#Associate Private Subnet B
+resource "aws_route_table_association" "private_b" {
+  subnet_id      = aws_subnet.private_b.id
+  route_table_id = aws_route_table.private_b.id
+}
+
+#Elastic IP for NAT Gateway B
+resource "aws_eip" "nat_b" {
+  domain = "vpc"
+
+  tags = {
+    Name        = "${var.project_name}-nat-eip-b"
+    Environment = var.environment
+    ManagedBy   = "Terraform"
+  }
+}
+
+#NAT Gateway B
+resource "aws_nat_gateway" "nat_b" {
+  allocation_id = aws_eip.nat_b.id
+  subnet_id     = aws_subnet.public_b.id
+
+  depends_on = [aws_internet_gateway.main]
+
+  tags = {
+    Name        = "${var.project_name}-nat-gateway-b"
+    Environment = var.environment
+    ManagedBy   = "Terraform"
+  }
+}
