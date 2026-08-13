@@ -27,3 +27,8 @@ variable "private_subnet_b_id" {
   description = "Private subnet B ID"
   type        = string
 }
+
+variable "target_group_arn" {
+  description = "ARN of the ALB target group"
+  type        = string
+}
