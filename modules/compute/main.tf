@@ -1,3 +1,12 @@
+locals {
+  common_tags = {
+    Project     = var.project_name
+    Environment = var.environment
+    ManagedBy   = "Terraform"
+  }
+}
+
+
 #AMI Data Source
 data "aws_ami" "amazon_linux" {
   most_recent = true
@@ -50,11 +59,9 @@ EOF
   tag_specifications {
     resource_type = "instance"
 
-    tags = {
-      Name        = "${var.project_name}-app-server"
-      Environment = var.environment
-      ManagedBy   = "Terraform"
-    }
+    tags = merge(local.common_tags, {
+      Name = "${var.project_name}-app-server"
+    })
   }
 }
 
@@ -94,6 +101,12 @@ resource "aws_autoscaling_group" "app" {
   tag {
     key                 = "ManagedBy"
     value               = "Terraform"
+    propagate_at_launch = true
+  }
+
+  tag {
+    key                 = "Project"
+    value               = var.project_name
     propagate_at_launch = true
   }
 }

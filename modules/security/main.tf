@@ -1,3 +1,12 @@
+locals {
+  common_tags = {
+    Project     = var.project_name
+    Environment = var.environment
+    ManagedBy   = "Terraform"
+  }
+}
+
+
 #ALB Security Group
 
 resource "aws_security_group" "alb" {
@@ -29,11 +38,9 @@ resource "aws_security_group" "alb" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags = {
-    Name        = "${var.project_name}-alb-sg"
-    Environment = var.environment
-    ManagedBy   = "Terraform"
-  }
+  tags = merge(local.common_tags, {
+    Name = "${var.project_name}-alb-sg"
+  })
 }
 
 #EC2 Security Group
@@ -59,9 +66,7 @@ resource "aws_security_group" "ec2" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags = {
-    Name        = "${var.project_name}-ec2-sg"
-    Environment = var.environment
-    ManagedBy   = "Terraform"
-  }
+  tags = merge(local.common_tags, {
+    Name = "${var.project_name}-ec2-sg"
+  })
 }

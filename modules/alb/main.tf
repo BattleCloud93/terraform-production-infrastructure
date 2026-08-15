@@ -1,3 +1,11 @@
+locals {
+  common_tags = {
+    Project     = var.project_name
+    Environment = var.environment
+    ManagedBy   = "Terraform"
+  }
+}
+
 #ALB
 resource "aws_lb" "app" {
   name               = "tf-prod-infra-alb"
@@ -8,11 +16,9 @@ resource "aws_lb" "app" {
 
   subnets = [var.public_subnet_a_id, var.public_subnet_b_id]
 
-  tags = {
-    Name        = "${var.project_name}-alb"
-    Environment = var.environment
-    ManagedBy   = "Terraform"
-  }
+  tags = merge(local.common_tags, {
+    Name = "${var.project_name}-alb"
+  })
 }
 
 #Target Group
@@ -33,11 +39,9 @@ resource "aws_lb_target_group" "app" {
     matcher             = "200"
   }
 
-  tags = {
-    Name        = "${var.project_name}-target-group"
-    Environment = var.environment
-    ManagedBy   = "Terraform"
-  }
+  tags = merge(local.common_tags, {
+    Name = "${var.project_name}-target-group"
+  })
 }
 
 #Listener
