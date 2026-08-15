@@ -41,3 +41,10 @@ module "alb" {
   public_subnet_b_id = module.networking.public_subnet_b_id
   vpc_id             = module.networking.vpc_id
 }
+
+module "monitoring" {
+  source = "./modules/monitoring"
+
+  project_name           = var.project_name
+  autoscaling_group_name = module.compute.autoscaling_group_name
+}
