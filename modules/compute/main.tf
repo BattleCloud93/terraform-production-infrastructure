@@ -75,6 +75,10 @@ resource "aws_autoscaling_group" "app" {
     version = "$Latest"
   }
 
+  lifecycle {
+    ignore_changes = [desired_capacity]
+  }
+
   tag {
     key                 = "Name"
     value               = "${var.project_name}-app-server"
