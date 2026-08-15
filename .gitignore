@@ -20,3 +20,7 @@ terraform.rc.json
 
 # macOS
 .DS_Store
+
+#Terraform variable files
+*.tfvars
+**.tfvars.json
