@@ -1,3 +1,11 @@
+locals {
+  common_tags = {
+    Project     = var.project_name
+    Environment = var.environment
+    ManagedBy   = "Terraform"
+  }
+}
+
 data "aws_availability_zones" "available" {
   state = "available"
 }
@@ -9,11 +17,9 @@ resource "aws_vpc" "main" {
   enable_dns_support   = true
   enable_dns_hostnames = true
 
-  tags = {
-    Name        = "${var.project_name}-vpc"
-    Environment = var.environment
-    ManagedBy   = "Terraform"
-  }
+  tags = merge(local.common_tags, {
+    Name = "${var.project_name}-vpc"
+  })
 }
 
 resource "aws_subnet" "public_a" {
@@ -22,11 +28,9 @@ resource "aws_subnet" "public_a" {
   availability_zone       = data.aws_availability_zones.available.names[0]
   map_public_ip_on_launch = true
 
-  tags = {
-    Name        = "${var.project_name}-public-subnet-a"
-    Environment = var.environment
-    ManagedBy   = "Terraform"
-  }
+  tags = merge(local.common_tags, {
+    Name = "${var.project_name}-public-subnet-a"
+  })
 }
 
 resource "aws_subnet" "public_b" {
@@ -35,11 +39,9 @@ resource "aws_subnet" "public_b" {
   availability_zone       = data.aws_availability_zones.available.names[1]
   map_public_ip_on_launch = true
 
-  tags = {
-    Name        = "${var.project_name}-public-subnet-b"
-    Environment = var.environment
-    ManagedBy   = "Terraform"
-  }
+  tags = merge(local.common_tags, {
+    Name = "${var.project_name}-public-subnet-b"
+  })
 }
 
 resource "aws_subnet" "private_a" {
@@ -47,34 +49,31 @@ resource "aws_subnet" "private_a" {
   cidr_block              = var.private_subnet_a_cidr
   availability_zone       = data.aws_availability_zones.available.names[0]
   map_public_ip_on_launch = false
-  tags = {
-    Name        = "${var.project_name}-private-subnet-a"
-    Environment = var.environment
-    ManagedBy   = "Terraform"
-  }
+
+  tags = merge(local.common_tags, {
+    Name = "${var.project_name}-private-subnet-a"
+  })
 }
+
 
 resource "aws_subnet" "private_b" {
   vpc_id                  = aws_vpc.main.id
   cidr_block              = var.private_subnet_b_cidr
   availability_zone       = data.aws_availability_zones.available.names[1]
   map_public_ip_on_launch = false
-  tags = {
-    Name        = "${var.project_name}-private-subnet-b"
-    Environment = var.environment
-    ManagedBy   = "Terraform"
-  }
+
+  tags = merge(local.common_tags, {
+    Name = "${var.project_name}-private-subnet-b"
+  })
 }
 
 #Internet Gateway
 resource "aws_internet_gateway" "main" {
   vpc_id = aws_vpc.main.id
 
-  tags = {
-    Name        = "${var.project_name}-igw"
-    Environment = var.environment
-    ManagedBy   = "Terraform"
-  }
+  tags = merge(local.common_tags, {
+    Name = "${var.project_name}-igw"
+  })
 }
 
 #Public Route Table
@@ -86,11 +85,9 @@ resource "aws_route_table" "public" {
     gateway_id = aws_internet_gateway.main.id
   }
 
-  tags = {
-    Name        = "${var.project_name}-public-route-table"
-    Environment = var.environment
-    ManagedBy   = "Terraform"
-  }
+  tags = merge(local.common_tags, {
+    Name = "${var.project_name}-public-route-table"
+  })
 }
 
 #Associate Public Subnet A
@@ -110,11 +107,9 @@ resource "aws_route_table_association" "public_b" {
 resource "aws_eip" "nat" {
   domain = "vpc"
 
-  tags = {
-    Name        = "${var.project_name}-nat-eip"
-    Environment = var.environment
-    ManagedBy   = "Terraform"
-  }
+  tags = merge(local.common_tags, {
+    Name = "${var.project_name}-nat-eip"
+  })
 }
 
 #NAT Gateway A
@@ -124,11 +119,9 @@ resource "aws_nat_gateway" "main" {
 
   depends_on = [aws_internet_gateway.main]
 
-  tags = {
-    Name        = "${var.project_name}-nat-gateway"
-    Environment = var.environment
-    ManagedBy   = "Terraform"
-  }
+  tags = merge(local.common_tags, {
+    Name = "${var.project_name}-nat-gateway"
+  })
 }
 
 #Private Route Table A
@@ -140,11 +133,9 @@ resource "aws_route_table" "private" {
     nat_gateway_id = aws_nat_gateway.main.id
   }
 
-  tags = {
-    Name        = "${var.project_name}-private-route-table"
-    Environment = var.environment
-    ManagedBy   = "Terraform"
-  }
+  tags = merge(local.common_tags, {
+    Name = "${var.project_name}-private-route-table"
+  })
 }
 
 #Private Route Table B
@@ -156,11 +147,9 @@ resource "aws_route_table" "private_b" {
     nat_gateway_id = aws_nat_gateway.nat_b.id
   }
 
-  tags = {
-    Name        = "${var.project_name}-private-route-table-b"
-    Environment = var.environment
-    ManagedBy   = "Terraform"
-  }
+  tags = merge(local.common_tags, {
+    Name = "${var.project_name}-private-route-table-b"
+  })
 }
 
 #Associate Private Subnet A
@@ -179,11 +168,9 @@ resource "aws_route_table_association" "private_b" {
 resource "aws_eip" "nat_b" {
   domain = "vpc"
 
-  tags = {
-    Name        = "${var.project_name}-nat-eip-b"
-    Environment = var.environment
-    ManagedBy   = "Terraform"
-  }
+  tags = merge(local.common_tags, {
+    Name = "${var.project_name}-nat-eip-b"
+  })
 }
 
 #NAT Gateway B
@@ -193,9 +180,7 @@ resource "aws_nat_gateway" "nat_b" {
 
   depends_on = [aws_internet_gateway.main]
 
-  tags = {
-    Name        = "${var.project_name}-nat-gateway-b"
-    Environment = var.environment
-    ManagedBy   = "Terraform"
-  }
+  tags = merge(local.common_tags, {
+    Name = "${var.project_name}-nat-gateway-b"
+  })
 }
