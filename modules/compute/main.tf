@@ -43,28 +43,19 @@ resource "aws_launch_template" "app" {
 
   vpc_security_group_ids = [var.security_group_id]
 
-  user_data = base64encode(<<-EOF
-    #!/bin/bash
-    
-    dnf update -y
-    dnf install -y nginx
-
-    systemctl enable nginx
-    systemctl start nginx
-
-    echo "<h1>Hello from Terraform Production Infrastructure</h1>" > /usr/share/nginx/html/index.html
-EOF
-  )
+  user_data = filebase64("${path.root}/scripts/install.sh")
 
   tag_specifications {
     resource_type = "instance"
 
-    tags = merge(local.common_tags, {
-      Name = "${var.project_name}-app-server"
-    })
+    tags = merge(
+      local.common_tags,
+      {
+        Name = "${var.project_name}-app-server"
+      }
+    )
   }
 }
-
 #Auto Scaling Group
 resource "aws_autoscaling_group" "app" {
   name = "${var.project_name}-asg"
